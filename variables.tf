@@ -44,3 +44,15 @@ variable "crawler_name" {
   type        = string
   default     = "cur-crawler"
 }
+
+variable "cost_center" {
+  description = "Cost center tag for all resources"
+  type        = string
+  default     = "FinOps"
+}
+
+variable "tag_filter_value" {
+  description = "Tag value used to filter for ENV"
+  type        = string
+  default     = "Production"
+}
