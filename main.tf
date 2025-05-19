@@ -42,10 +42,10 @@ resource "aws_cur_report_definition" "ebs_report" {
 }
 
 resource "aws_athena_database" "cur_database" {
-  count        = var.use_fake_data ? 0 : 1
-  name         = var.athena_database_name
-  bucket       = var.s3_bucket_name
-  comment      = "Athena CUR Database"
+  count   = var.use_fake_data ? 0 : 1
+  name    = var.athena_database_name
+  bucket  = var.s3_bucket_name
+  comment = "Athena CUR Database"
 }
 
 resource "aws_iam_role" "glue_crawler_role" {
@@ -71,8 +71,8 @@ resource "aws_iam_role_policy" "glue_crawler_policy" {
     Version = "2012-10-17",
     Statement = [
       {
-        Effect   = "Allow",
-        Action   = ["s3:GetObject", "s3:ListBucket"],
+        Effect = "Allow",
+        Action = ["s3:GetObject", "s3:ListBucket"],
         Resource = [
           "arn:aws:s3:::${var.s3_bucket_name}",
           "arn:aws:s3:::${var.s3_bucket_name}/*"
@@ -88,9 +88,9 @@ resource "aws_iam_role_policy" "glue_crawler_policy" {
 }
 
 resource "aws_glue_crawler" "cur_crawler" {
-  count        = var.use_fake_data ? 0 : 1
-  name         = var.crawler_name
-  role         = aws_iam_role.glue_crawler_role[0].arn
+  count         = var.use_fake_data ? 0 : 1
+  name          = var.crawler_name
+  role          = aws_iam_role.glue_crawler_role[0].arn
   database_name = var.athena_database_name
 
   s3_target {
