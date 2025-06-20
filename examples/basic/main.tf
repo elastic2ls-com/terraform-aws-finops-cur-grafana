@@ -8,4 +8,5 @@ module "cur_athena" {
   athena_database_name = "cur_database"
   report_table_name    = "cur_table"
   crawler_name         = "cur-crawler"
+  vpc_id               = "vpc-1234567890abcdef0"
 }
