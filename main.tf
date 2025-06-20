@@ -1,6 +1,6 @@
 module "grafana" {
-  source = "./modules/grafana"
-  vpc_id = var.vpc_id
+  source       = "./modules/grafana"
+  vpc_id       = var.vpc_id
   project_name = var.project_name
 }
 

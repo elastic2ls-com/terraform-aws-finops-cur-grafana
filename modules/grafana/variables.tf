@@ -49,7 +49,7 @@ variable "execution_role_name" {
 
 variable "vpc_id" {
   description = "The id of the VPC"
-  type = string
+  type        = string
 }
 
 variable "subnet_ids" {
@@ -59,6 +59,6 @@ variable "subnet_ids" {
 }
 
 variable "project_name" {
-  type = string
+  type    = string
   default = "FinOPS-reporting"
 }

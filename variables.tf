@@ -1,5 +1,5 @@
 variable "project_name" {
-  type = string
+  type    = string
   default = "FinOPS-reporting"
 }
 
@@ -64,7 +64,7 @@ variable "tag_filter_value" {
 
 variable "vpc_id" {
   description = "The id of the VPC"
-  type = string
+  type        = string
 }
 
 variable "subnet_ids" {
