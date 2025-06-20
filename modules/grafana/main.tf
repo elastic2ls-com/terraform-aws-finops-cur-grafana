@@ -1,6 +1,6 @@
 # --- IAM Role for Fargate Task Execution ---
 resource "aws_iam_role" "grafana_task_execution" {
-  name = "${var.name}-task-execution-role"
+  name = "${var.project_name}-task-execution-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -22,15 +22,15 @@ resource "aws_iam_role_policy_attachment" "ecs_task_exec_policy" {
 
 # --- Security Group ---
 resource "aws_security_group" "grafana_sg" {
-  name        = "${var.name}-sg"
-  description = "Allow HTTP/HTTPS access to Grafana"
+  name        = "${var.project_name}-sg"
+  description = "Allow HTTP 3000 access to Grafana"
   vpc_id      = var.vpc_id
 
   ingress {
-    from_port   = 443
-    to_port     = 443
+    from_port   = 3000
+    to_port     = 3000
     protocol    = "tcp"
-    cidr_blocks = var.allowed_cidr_blocks
+    cidr_blocks = var.subnet_ids // muss auf öffentlich gesetzt werden sobald SSL verfübar ist.
   }
 
   egress {
@@ -43,7 +43,7 @@ resource "aws_security_group" "grafana_sg" {
 
 # --- Task Definition ---
 resource "aws_ecs_task_definition" "grafana" {
-  family                   = "${var.name}-task"
+  family                   = "${var.project_name}-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"

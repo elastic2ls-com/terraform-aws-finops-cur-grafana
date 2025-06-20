@@ -46,3 +46,19 @@ variable "execution_role_name" {
   type        = string
   default     = "ecsTaskExecutionRole"
 }
+
+variable "vpc_id" {
+  description = "The id of the VPC"
+  type = string
+}
+
+variable "subnet_ids" {
+  type        = list(string)
+  default     = []
+  description = "A list of subnet ids."
+}
+
+variable "project_name" {
+  type = string
+  default = "FinOPS-reporting"
+}

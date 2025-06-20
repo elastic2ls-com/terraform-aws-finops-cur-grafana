@@ -1,3 +1,8 @@
+variable "project_name" {
+  type = string
+  default = "FinOPS-reporting"
+}
+
 variable "use_fake_data" {
   description = "Enable fake/test mode (no AWS resources created)"
   type        = bool
@@ -55,4 +60,15 @@ variable "tag_filter_value" {
   description = "Tag value used to filter for ENV"
   type        = string
   default     = "Production"
+}
+
+variable "vpc_id" {
+  description = "The id of the VPC"
+  type = string
+}
+
+variable "subnet_ids" {
+  type        = list(string)
+  default     = []
+  description = "A list of subnet ids."
 }
