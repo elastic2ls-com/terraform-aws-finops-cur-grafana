@@ -1,99 +1,80 @@
-resource "aws_s3_bucket" "cur_bucket" {
-  count  = var.use_fake_data ? 0 : 1
-  bucket = var.s3_bucket_name
+resource "aws_ecs_cluster" "this" {
+  name = var.cluster_name
 }
 
-resource "aws_s3_bucket_policy" "cur_bucket_policy" {
-  count  = var.use_fake_data ? 0 : 1
-  bucket = aws_s3_bucket.cur_bucket[0].id
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Sid       = "AWSBillingPermissions",
-        Effect    = "Allow",
-        Principal = { Service = "billingreports.amazonaws.com" },
-        Action    = "s3:GetBucketAcl",
-        Resource  = aws_s3_bucket.cur_bucket[0].arn
-      },
-      {
-        Sid       = "AWSBillingPutObject",
-        Effect    = "Allow",
-        Principal = { Service = "billingreports.amazonaws.com" },
-        Action    = "s3:PutObject",
-        Resource  = "${aws_s3_bucket.cur_bucket[0].arn}/*"
-      }
-    ]
-  })
+# --- Load Balancer + Target Group ---
+resource "aws_lb" "grafana" {
+  name               = "${var.name}-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.grafana_sg.id]
+  subnets            = var.subnet_ids
 }
 
-resource "aws_cur_report_definition" "ebs_report" {
-  count                      = var.use_fake_data ? 0 : 1
-  report_name                = var.report_name
-  time_unit                  = "DAILY"
-  format                     = "Parquet"
-  compression                = "Parquet"
-  additional_schema_elements = ["RESOURCES"]
-  s3_bucket                  = var.s3_bucket_name
-  s3_region                  = var.aws_region
-  s3_prefix                  = var.report_prefix
-  report_versioning          = "CREATE_NEW_REPORT"
+resource "aws_lb_target_group" "grafana_tg" {
+  name        = "${var.name}-tg"
+  port        = 3000
+  protocol    = "HTTP"
+  target_type = "ip"
+  vpc_id      = var.vpc_id
+
+  health_check {
+    path                = "/"
+    port                = "3000"
+    protocol            = "HTTP"
+    matcher             = "200-399"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 3
+  }
 }
 
-resource "aws_athena_database" "cur_database" {
-  count   = var.use_fake_data ? 0 : 1
-  name    = var.athena_database_name
-  bucket  = var.s3_bucket_name
-  comment = "Athena CUR Database"
+resource "aws_lb_listener" "https" {
+  load_balancer_arn = aws_lb.grafana.arn
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = var.certificate_arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.grafana_tg.arn
+  }
 }
 
-resource "aws_iam_role" "glue_crawler_role" {
-  count = var.use_fake_data ? 0 : 1
+# --- ECS Service ---
+resource "aws_ecs_service" "grafana" {
+  name            = "${var.name}-service"
+  cluster         = aws_ecs_cluster.this.id
+  task_definition = aws_ecs_task_definition.grafana.arn
+  launch_type     = "FARGATE"
+  desired_count   = 1
 
-  name = "glue-crawler-role"
+  network_configuration {
+    subnets         = var.subnet_ids
+    security_groups = [aws_security_group.grafana_sg.id]
+    assign_public_ip = true
+  }
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [{
-      Effect    = "Allow",
-      Principal = { Service = "glue.amazonaws.com" },
-      Action    = "sts:AssumeRole"
-    }]
-  })
+  load_balancer {
+    target_group_arn = aws_lb_target_group.grafana_tg.arn
+    container_name   = "grafana"
+    container_port   = 3000
+  }
+
+  depends_on = [aws_iam_role_policy_attachment.ecs_task_exec_policy]
 }
 
-resource "aws_iam_role_policy" "glue_crawler_policy" {
-  count = var.use_fake_data ? 0 : 1
-  role  = aws_iam_role.glue_crawler_role[0].id
+# --- DNS (optional) ---
+resource "aws_route53_record" "grafana_dns" {
+  zone_id = var.zone_id
+  name    = var.domain_name
+  type    = "A"
 
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Action = ["s3:GetObject", "s3:ListBucket"],
-        Resource = [
-          "arn:aws:s3:::${var.s3_bucket_name}",
-          "arn:aws:s3:::${var.s3_bucket_name}/*"
-        ]
-      },
-      {
-        Effect   = "Allow",
-        Action   = ["glue:*"],
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-resource "aws_glue_crawler" "cur_crawler" {
-  count         = var.use_fake_data ? 0 : 1
-  name          = var.crawler_name
-  role          = aws_iam_role.glue_crawler_role[0].arn
-  database_name = var.athena_database_name
-
-  s3_target {
-    path = "s3://${var.s3_bucket_name}/${var.report_prefix}"
+  alias {
+    name                   = aws_lb.grafana.dns_name
+    zone_id                = aws_lb.grafana.zone_id
+    evaluate_target_health = true
   }
 }
