@@ -52,8 +52,8 @@ resource "aws_ecs_task_definition" "grafana" {
 
   container_definitions = jsonencode([
     {
-      name      = "grafana"
-      image     = "grafana/grafana-oss:latest"
+      name  = "grafana"
+      image = "grafana/grafana-oss:latest"
       portMappings = [{
         containerPort = 3000
         protocol      = "tcp"
