@@ -17,3 +17,7 @@ output "container_port" {
   description = "Port exposed by Grafana container"
   value       = var.container_port
 }
+
+output "lb_dns_name" {
+  value = aws_lb.grafana.dns_name
+}

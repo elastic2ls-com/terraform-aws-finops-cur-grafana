@@ -10,8 +10,13 @@ provider "aws" {
     tags = {
       Environment = var.tag_filter_value
       CostCenter  = var.cost_center
-      ManagedBy   = "terraform-aws-ebs-optimization"
+      ManagedBy   = "terraform-aws-cur-grafana"
     }
   }
 
+}
+
+provider "grafana" {
+  url  = "http://${module.grafana.lb_dns_name}:3000"
+  auth = "admin:${var.grafana_admin_password}"
 }

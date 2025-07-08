@@ -1,0 +1,22 @@
+{
+  "title": "AWS CUR – Cost Overview",
+  "uid": "cur-cost",
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "version": 1,
+  "panels": [
+    {
+      "type": "table",
+      "title": "Top Services by Cost (last 30d)",
+      "datasource": "Athena CUR",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT service, cost, month FROM cur_monthly_cost_by_service WHERE month >= date_trunc('month', current_date - interval '1' month') ORDER BY cost DESC LIMIT 10",
+          "refId": "A"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 8 }
+    }
+  ]
+}

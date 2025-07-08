@@ -1,0 +1,6 @@
+region          = "eu-central-1"
+bucket          = "535159664206-terraform-state"
+dynamodb_table  = "535159664206-terraform-state"
+key             = "terraform.tfstate"
+encrypt         = "true"
+profile         = "staffing-tool-test"

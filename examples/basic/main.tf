@@ -5,8 +5,8 @@ module "cur_athena" {
   s3_bucket_name       = "my-cur-report-bucket"
   report_name          = "ebs-cost-usage-report"
   report_prefix        = "cur/ebs-report/"
-  athena_database_name = "cur_database"
+  athena_database_name = "cur_catalog"
   report_table_name    = "cur_table"
   crawler_name         = "cur-crawler"
-  vpc_id               = "vpc-1234567890abcdef0"
+  aws_vpc              = "vpc-1234567890abcdef0"
 }
